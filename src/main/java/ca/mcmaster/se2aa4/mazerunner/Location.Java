@@ -1,19 +1,19 @@
 package ca.mcmaster.se2aa4.mazerunner;
 
-public class Location {
-    private int x;
-    private int y;
+public record Location(int x, int y) {
 
-    public Location(int x, int y) {
-        this.x = x;
-        this.y = y;
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
+    /**
+     * Creates a new Location by moving in a specified direction.
+     *
+     * @param direction The direction to move in
+     * @return A new Location after movement
+     */
+    public Location move(Direction direction) {
+        return switch (direction) {
+            case UP -> new Location(x, y - 1);
+            case DOWN -> new Location(x, y + 1);
+            case LEFT -> new Location(x - 1, y);
+            case RIGHT -> new Location(x + 1, y);
+        };
     }
 }
