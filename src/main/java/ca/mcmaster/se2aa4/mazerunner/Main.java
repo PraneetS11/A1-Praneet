@@ -9,7 +9,6 @@ public class Main {
     private static final Logger logger = LogManager.getLogger(Main.class);
 
     public static void main(String[] args) {
-        System.out.println("** Starting Maze Runner");
         logger.info("Logger is working!");
 
         // Print raw arguments for debugging

@@ -31,18 +31,12 @@ public class Map {
         String line;
         int expectedWidth = -1;
         while ((line = reader.readLine()) != null) {
-            // Skip truly empty lines (length 0) but not lines with spaces.
-            if (line.length() == 0) {
-                continue;
-            }
+           
             List<Boolean> newLine = new ArrayList<>();
             for (int idx = 0; idx < line.length(); idx++) {
                 if (line.charAt(idx) == '#') {
                     newLine.add(true);
-                } else if (line.charAt(idx) == ' ') {
-                    newLine.add(false);
                 } else {
-                    // For any other character, treat it as an open path.
                     newLine.add(false);
                 }
             }
@@ -85,16 +79,19 @@ public class Map {
      * @throws Exception If no valid start Location exists.
      */
     private Location findStart() throws Exception {
-        for (int i = 0; i < maze.size(); i++) {
-            Location loc = new Location(0, i);
+        logger.info("Finding start location...");
+
+        for (int y = 0; y < maze.size(); y++) {
+            Location loc = new Location(0, y);
+            logger.info("Checking location: " + loc);
+            
             if (!isWall(loc)) {
+                logger.info("Start location found: " + loc);
                 return loc;
             }
-            // Alternatively, check the right boundary as a potential entry.
-            if (!maze.get(i).get(maze.get(i).size() - 1)) {
-                return new Location(maze.get(i).size() - 1, i);
-            }
         }
+
+        logger.error("Invalid maze (no start Location available)");
         throw new Exception("Invalid maze (no start Location available)");
     }
 
@@ -105,12 +102,19 @@ public class Map {
      * @throws Exception If no valid end Location exists.
      */
     private Location findEnd() throws Exception {
-        for (int i = 0; i < maze.size(); i++) {
-            Location loc = new Location(maze.get(0).size() - 1, i);
+        logger.info("Finding end location...");
+
+        for (int y = 0; y < maze.size(); y++) {
+            Location loc = new Location(maze.get(0).size() - 1, y);
+            logger.debug("Checking location: " + loc);
+
             if (!isWall(loc)) {
+                logger.info("End location found: " + loc);
                 return loc;
             }
         }
+
+        logger.error("Invalid maze (no end Location available)");
         throw new Exception("Invalid maze (no end Location available)");
     }
 

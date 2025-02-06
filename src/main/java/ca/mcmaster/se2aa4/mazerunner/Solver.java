@@ -6,46 +6,65 @@ import org.apache.logging.log4j.Logger;
 public class Solver {
     private static final Logger logger = LogManager.getLogger(Solver.class);
 
-    private final Map mazeMap;
+    private final Map maze;
     private Location currentPosition;
-    private final Direction direction;
+    private Direction direction;
 
     /**
-     * Initializes the solver with the map, starting location, and initial direction.
+     * Initializes the solver with the maze.
      *
-     * @param mazeMap       The maze map to be solved.
-     * @param start         The starting location of the solver.
-     * @param direction     The initial direction of movement.
+     * @param maze The maze map to be solved.
      */
-    public Solver(Map mazeMap, Location start, Direction direction) {
-        this.mazeMap = mazeMap;
-        this.currentPosition = start;
-        this.direction = direction;
-        logger.info("Solver initialized with start: " + start + " and direction: " + direction);
+    public Solver(Map maze) {
+        this.maze = maze;
+        this.currentPosition = maze.getStart();
+        this.direction = Direction.RIGHT; // Default start facing right
+        logger.info("Solver initialized with start position: " + currentPosition + " and initial direction: " + direction);
     }
 
     /**
-     * Solves the maze by moving forward until it hits a wall or reaches the End.
+     * Solves the maze using the right-hand rule.
      *
      * @return A Path object containing the movement instructions.
      */
     public Path solve() {
-        logger.info("Solving the maze...");
+        logger.info("Solving the maze using Right-Hand Rule...");
         Path path = new Path();
 
-        while (!currentPosition.equals(mazeMap.getEnd())) {
-            Location nextPosition = currentPosition.move(direction);
+        while (!currentPosition.equals(maze.getEnd())) {
+            logger.debug("Current Position: " + currentPosition + " | Facing: " + direction);
 
-            if (mazeMap.isWall(nextPosition)) {
-                logger.info("Hit a wall at " + nextPosition + ". Stopping.");
-                break;
+            if (!maze.isWall(currentPosition.move(direction.turnRight()))) {
+                // Turn right and move forward if not a wall
+                direction = direction.turnRight();
+                path.addStep('R');
+                currentPosition = currentPosition.move(direction);
+                path.addStep('F');
+                logger.debug("Turned right and moved forward to " + currentPosition);
+            } else if (!maze.isWall(currentPosition.move(direction))) {
+                // Move forward if not a wall
+                currentPosition = currentPosition.move(direction);
+                path.addStep('F');
+                logger.debug("Moved forward to " + currentPosition);
+            } else if (!maze.isWall(currentPosition.move(direction.turnLeft()))) {
+                // Turn left and move forward if not a wall
+                direction = direction.turnLeft();
+                path.addStep('L');
+                currentPosition = currentPosition.move(direction);
+                path.addStep('F');
+                logger.debug("Turned left and moved forward to " + currentPosition);
+            } else {
+                // Dead-end, turn around (180 degrees)
+                direction = direction.turnRight().turnRight();
+                path.addStep('R');
+                path.addStep('R');
+                logger.debug("Dead-end! Turned around. Now facing " + direction);
             }
 
-            currentPosition = nextPosition;
-            path.addStep('F');
+            logger.debug("Current Path: " + path.getCanonicalForm());
         }
 
-        logger.info("Maze solved. Path: " + path);
+        logger.info("Maze solved. Final Path: " + path);
         return path;
     }
 }
