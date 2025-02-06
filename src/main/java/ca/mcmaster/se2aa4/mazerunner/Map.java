@@ -1,161 +1,162 @@
 package ca.mcmaster.se2aa4.mazerunner;
-import ca.mcmaster.se2aa4.mazerunner.Location;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Map {
     private static final Logger logger = LogManager.getLogger(Map.class);
 
-    private final boolean[][] mazeGrid;
-    private final int width;
-    private final int height;
+    // The maze grid: each inner list represents a row.
+    // 'true' means a wall ('#'), 'false' means an open path.
+    private final List<List<Boolean>> maze = new ArrayList<>();
+
     private final Location start;
-    private final Location exit;
+    private final Location end;
 
     /**
-     * Loads a maze from the given file and initializes its structure.
+     * Initialize a Maze from a file path.
      *
-     * @param filePath The path to the maze file.
-     * @throws IOException If an error occurs while reading the file.
+     * @param filePath File path of the maze file.
+     * @throws Exception If the maze cannot be read, if rows are inconsistent,
+     *                   or if no valid start or end Location is found.
      */
-    public Map(String filePath) throws IOException {
-        List<String> mazeLines = readMazeFile(filePath);
-        this.height = mazeLines.size();
-        this.width = mazeLines.get(0).length();
-        this.mazeGrid = parseMaze(mazeLines);
+    public Map(String filePath) throws Exception {
+        logger.debug("Reading the maze from file " + filePath);
+        BufferedReader reader = new BufferedReader(new FileReader(filePath));
+        String line;
+        int expectedWidth = -1;
+        while ((line = reader.readLine()) != null) {
+            // Skip truly empty lines (length 0) but not lines with spaces.
+            if (line.length() == 0) {
+                continue;
+            }
+            List<Boolean> newLine = new ArrayList<>();
+            for (int idx = 0; idx < line.length(); idx++) {
+                if (line.charAt(idx) == '#') {
+                    newLine.add(true);
+                } else if (line.charAt(idx) == ' ') {
+                    newLine.add(false);
+                } else {
+                    // For any other character, treat it as an open path.
+                    newLine.add(false);
+                }
+            }
+            // Set expectedWidth based on the first non-empty row
+            if (expectedWidth == -1) {
+                expectedWidth = newLine.size();
+            } else if (newLine.size() < expectedWidth) {
+                // Pad the row with false until it reaches the expected width.
+                while (newLine.size() < expectedWidth) {
+                    newLine.add(false);
+                }
+            } else if (newLine.size() > expectedWidth) {
+                // Trim the row if it's too long.
+                newLine = newLine.subList(0, expectedWidth);
+            }
+            maze.add(newLine);
+        }
+        reader.close();
 
-        this.start = locateEntry();
-        this.exit = locateExit();
-        
-        logger.info("Maze loaded successfully - Start: " + start + ", Exit: " + exit);
-    }
+        if (maze.isEmpty()) {
+            throw new Exception("Maze file is empty or contains no valid rows.");
+        }
 
-    /**
-     * Reads the maze file line by line.
-     *
-     * @param filePath Path to the maze file.
-     * @return List of maze rows as strings.
-     * @throws IOException If the file cannot be read.
-     */
-    private List<String> readMazeFile(String filePath) throws IOException {
-        List<String> lines = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                lines.add(line);
+        // (Optional) Verify row consistency (should always be true now).
+        for (int i = 0; i < maze.size(); i++) {
+            if (maze.get(i).size() != expectedWidth) {
+                throw new Exception("Inconsistent row lengths in maze file. Expected width: " + expectedWidth +
+                        ", but row " + i + " has length " + maze.get(i).size());
             }
         }
-        if (lines.isEmpty()) {
-            throw new IOException("Maze file is empty.");
-        }
-        return lines;
+
+        start = findStart();
+        end = findEnd();
     }
 
     /**
-     * Converts the raw maze text into a boolean grid representation.
+     * Find start Location of the maze.
      *
-     * @param mazeLines List of strings representing the maze.
-     * @return A boolean 2D array where true represents walls and false represents open spaces.
+     * @return The start Location.
+     * @throws Exception If no valid start Location exists.
      */
-    private boolean[][] parseMaze(List<String> mazeLines) {
-        boolean[][] grid = new boolean[height][width];
-        for (int y = 0; y < height; y++) {
-            char[] rowChars = mazeLines.get(y).toCharArray();
-            for (int x = 0; x < width; x++) {
-                grid[y][x] = (rowChars[x] == '#'); // Walls are true, paths are false
+    private Location findStart() throws Exception {
+        for (int i = 0; i < maze.size(); i++) {
+            Location loc = new Location(0, i);
+            if (!isWall(loc)) {
+                return loc;
+            }
+            // Alternatively, check the right boundary as a potential entry.
+            if (!maze.get(i).get(maze.get(i).size() - 1)) {
+                return new Location(maze.get(i).size() - 1, i);
             }
         }
-        return grid;
+        throw new Exception("Invalid maze (no start Location available)");
     }
 
     /**
-     * Identifies the entry point of the maze.
+     * Find end Location of the maze.
      *
-     * @return The starting location of the maze.
-     * @throws IllegalStateException If no valid entry point is found.
+     * @return The end Location.
+     * @throws Exception If no valid end Location exists.
      */
-    private Location locateEntry() {
-        for (int y = 0; y < height; y++) {
-            if (!mazeGrid[y][0]) return new Location(0, y); // Left boundary
-            if (!mazeGrid[y][width - 1]) return new Location(width - 1, y); // Right boundary
+    private Location findEnd() throws Exception {
+        for (int i = 0; i < maze.size(); i++) {
+            Location loc = new Location(maze.get(0).size() - 1, i);
+            if (!isWall(loc)) {
+                return loc;
+            }
         }
-        throw new IllegalStateException("No valid maze entry found.");
+        throw new Exception("Invalid maze (no end Location available)");
     }
 
     /**
-     * Identifies the exit point of the maze.
+     * Check if Location of Maze is a wall.
      *
-     * @return The exit location of the maze.
-     * @throws IllegalStateException If no valid exit point is found.
+     * @param loc The Location to check.
+     * @return True if Location is a wall, false otherwise.
      */
-    private Location locateExit() {
-        for (int y = 0; y < height; y++) {
-            if (!mazeGrid[y][0] && !start.equals(new Location(0, y))) return new Location(0, y);
-            if (!mazeGrid[y][width - 1] && !start.equals(new Location(width - 1, y))) return new Location(width - 1, y);
-        }
-        throw new IllegalStateException("No valid maze exit found.");
+    public Boolean isWall(Location loc) {
+        return maze.get(loc.y()).get(loc.x());
     }
 
     /**
-     * Checks if a given location is within the maze bounds.
+     * Get start Location.
      *
-     * @param loc The location to validate.
-     * @return True if within bounds, false otherwise.
+     * @return Start Location.
      */
-    public boolean isWithinBounds(Location loc) {
-        return loc.y() >= 0 && loc.y() < height && loc.x() >= 0 && loc.x() < width;
-    }
-
-    /**
-     * Checks if a given location is a wall.
-     *
-     * @param loc The location to check.
-     * @return True if it is a wall, false if it's a passage.
-     */
-    public boolean isWall(Location loc) {
-        return isWithinBounds(loc) && mazeGrid[loc.y()][loc.x()];
-    }
-
-    /**
-     * Retrieves the start location.
-     *
-     * @return The start position of the maze.
-     */
-    public Location getStartLocation() {
+    public Location getStart() {
         return start;
     }
 
     /**
-     * Retrieves the exit location.
+     * Get end Location.
      *
-     * @return The exit position of the maze.
+     * @return End Location.
      */
-    public Location getExitLocation() {
-        return exit;
+    public Location getEnd() {
+        return end;
     }
 
     /**
-     * Retrieves the maze width.
+     * Get horizontal (X) size of Maze.
      *
-     * @return The width of the maze.
+     * @return Horizontal size.
      */
-    public int getWidth() {
-        return width;
+    public int getSizeX() {
+        return maze.get(0).size();
     }
 
     /**
-     * Retrieves the maze height.
+     * Get vertical (Y) size of Maze.
      *
-     * @return The height of the maze.
+     * @return Vertical size.
      */
-    public int getHeight() {
-        return height;
+    public int getSizeY() {
+        return maze.size();
     }
 }
