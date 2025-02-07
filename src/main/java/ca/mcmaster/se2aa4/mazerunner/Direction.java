@@ -1,12 +1,15 @@
 package ca.mcmaster.se2aa4.mazerunner;
 
 public enum Direction {
-    UP, DOWN, LEFT, RIGHT;
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT;
 
     /**
-     * Returns the direction when turning right (clockwise).
+     * Get the direction to the right of the current one (clockwise).
      *
-     * @return The new direction after turning right.
+     * @return The direction to the right.
      */
     public Direction turnRight() {
         return switch (this) {
@@ -18,9 +21,9 @@ public enum Direction {
     }
 
     /**
-     * Returns the direction when turning left (counterclockwise).
+     * Get the direction to the left of the current one (counter-clockwise).
      *
-     * @return The new direction after turning left.
+     * @return The direction to the left.
      */
     public Direction turnLeft() {
         return switch (this) {
@@ -32,9 +35,9 @@ public enum Direction {
     }
 
     /**
-     * Returns the direction when making a full turn (180 degrees).
+     * Get the opposite direction (180-degree turn).
      *
-     * @return The new direction after turning around.
+     * @return The opposite direction.
      */
     public Direction turnAround() {
         return switch (this) {

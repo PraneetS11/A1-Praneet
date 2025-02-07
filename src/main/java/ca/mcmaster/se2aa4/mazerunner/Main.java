@@ -9,13 +9,7 @@ public class Main {
     private static final Logger logger = LogManager.getLogger(Main.class);
 
     public static void main(String[] args) {
-        logger.info("Logger is working!");
-
-        // Print raw arguments for debugging
-        logger.info("Arguments received:");
-        for (String arg : args) {
-            logger.info(arg);
-        }
+        logger.info("** Starting Maze Runner");
 
         // Set up CLI options
         Options options = getParserOptions();
@@ -45,7 +39,7 @@ public class Main {
 
             // Initialize the solver with the map and its start location
             logger.info("Initializing solver...");
-            Solver solver = new Solver(map, map.getStart(), initialDirection);
+            Solver solver = new Solver(map);
 
             // Solve the maze
             logger.info("Calling solver.solve()...");
@@ -55,6 +49,7 @@ public class Main {
             if (solutionPath != null) {
                 logger.info("**** Computing path");
                 logger.info("Solution Path: " + solutionPath);
+                System.out.println(solutionPath);
             } else {
                 logger.warn("PATH NOT COMPUTED");
             }

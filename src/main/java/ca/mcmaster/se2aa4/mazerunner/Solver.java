@@ -35,19 +35,19 @@ public class Solver {
             logger.debug("Current Position: " + currentPosition + " | Facing: " + direction);
 
             if (!maze.isWall(currentPosition.move(direction.turnRight()))) {
-                // Turn right and move forward if not a wall
+                // Turn right and move forward if possible
                 direction = direction.turnRight();
                 path.addStep('R');
                 currentPosition = currentPosition.move(direction);
                 path.addStep('F');
                 logger.debug("Turned right and moved forward to " + currentPosition);
             } else if (!maze.isWall(currentPosition.move(direction))) {
-                // Move forward if not a wall
+                // Move forward if possible
                 currentPosition = currentPosition.move(direction);
                 path.addStep('F');
                 logger.debug("Moved forward to " + currentPosition);
             } else if (!maze.isWall(currentPosition.move(direction.turnLeft()))) {
-                // Turn left and move forward if not a wall
+                // Turn left and move forward if possible
                 direction = direction.turnLeft();
                 path.addStep('L');
                 currentPosition = currentPosition.move(direction);
@@ -61,10 +61,10 @@ public class Solver {
                 logger.debug("Dead-end! Turned around. Now facing " + direction);
             }
 
-            logger.debug("Current Path: " + path.getCanonicalForm());
+            logger.debug("Current Path: " + path);
         }
 
-        logger.info("Maze solved. Final Path: " + path);
+        logger.info("Maze solved! Final Path: " + path);
         return path;
     }
 }
