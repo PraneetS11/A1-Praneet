@@ -34,28 +34,44 @@ public class Main {
             Map map = new Map(filePath);
             logger.info("Maze successfully loaded. Start: " + map.getStart() + ", End: " + map.getEnd());
 
-            // Set the initial movement direction (default to RIGHT)
-            Direction initialDirection = Direction.RIGHT;
+            // Check if the -p flag is provided for path verification
+            if (cmd.hasOption("p")) {
+                logger.info("Validating path...");
+                String pathInput = cmd.getOptionValue("p");
 
-            // Initialize the solver with the map and its start location
-            logger.info("Initializing solver...");
-            Solver solver = new Solver(map);
+                // Expand factorized path if necessary
+                Path path = new Path(Path.expandFactorizedStringPath(pathInput));
 
-            // Solve the maze
-            logger.info("Calling solver.solve()...");
-            Path solutionPath = solver.solve();
-
-            // Output the solution path in factorized form
-            if (solutionPath != null) {
-                logger.info("**** Computing path");
-                logger.info("Solution Path: " + solutionPath);
-                System.out.println(solutionPath);
+                if (map.isPathValid(path)) {
+                    logger.info("Correct path");
+                    System.out.println("correct path");
+                } else {
+                    logger.info("Incorrect path");
+                    System.out.println("incorrect path");
+                }
             } else {
-                logger.warn("PATH NOT COMPUTED");
+                // Solve the maze normally if no -p flag is provided
+                logger.info("Initializing solver...");
+                Solver solver = new Solver(map);
+
+                // Solve the maze
+                logger.info("Calling solver.solve()...");
+                Path solutionPath = solver.solve();
+
+                // Output the solution path
+                if (solutionPath != null) {
+                    logger.info("**** Computing path");
+                    String canonicalSolution = solutionPath.getFactorizedForm();
+                    logger.info("Solution Path: " + canonicalSolution);
+                    System.out.println(canonicalSolution);
+                } else {
+                    logger.warn("PATH NOT COMPUTED");
+                }
             }
         } catch (Exception e) {
-            logger.error("/!\\ An error has occurred /!\\", e);
-            e.printStackTrace();
+            System.err.println("MazeSolver failed. Reason: " + e.getMessage());
+            logger.error("MazeSolver failed. Reason: " + e.getMessage());
+            logger.error("PATH NOT COMPUTED");
         }
 
         logger.info("** End of MazeRunner");
@@ -73,6 +89,9 @@ public class Main {
         Option fileOption = new Option("i", "input", true, "File that contains maze");
         fileOption.setRequired(true);
         options.addOption(fileOption);
+
+        // Add -p flag for path validation
+        options.addOption(new Option("p", "path", true, "Path to be verified in maze"));
 
         return options;
     }

@@ -164,44 +164,56 @@ public class Map {
         return maze.size();
     }
     public Boolean isPathValid(Path path) {
+        System.out.println("Checking path: " + path); // DEBUG LOG
         return isPathValidDirection(path, getStart(), Direction.RIGHT, getEnd()) ||
                isPathValidDirection(path, getEnd(), Direction.LEFT, getStart());
     }
     
-    /**
-     * Validates if a given path correctly moves from start to end.
-     *
-     * @param path The path to check.
-     * @param startPos The initial position in the maze.
-     * @param startDir The direction the path starts in.
-     * @param endPos The final position in the maze.
-     * @return True if the path is valid, otherwise false.
-     */
-    private Boolean isPathValidDirection(Path path, Location startPos, Direction startDir, Location endPos) {
-        Location current = startPos;
-        Direction currentDir = startDir;
-    
-        for (char step : path.getSteps()) {
-            switch (step) {
-                case 'F' -> {
-                    current = current.move(currentDir);
-    
-                    // Check if out of bounds
-                    if (current.x() < 0 || current.y() < 0 || current.x() >= getSizeX() || current.y() >= getSizeY()) {
-                        return false;
-                    }
-                    // Check if it's a wall
-                    if (isWall(current)) {
-                        return false;
-                    }
+
+/**
+ * Validates if a given path correctly moves from start to end.
+ *
+ * @param path The path to check.
+ * @param startPos The initial position in the maze.
+ * @param startDir The direction the path starts in.
+ * @param endPos The final position in the maze.
+ * @return True if the path is valid, otherwise false.
+ */
+private Boolean isPathValidDirection(Path path, Location startPos, Direction startDir, Location endPos) {
+    Location current = startPos;
+    Direction currentDir = startDir;
+
+    System.out.println("Starting validation from: " + startPos + " facing " + startDir);
+
+    for (char step : path.getPathSteps()) {
+        switch (step) {
+            case 'F' -> {
+                current = current.move(currentDir);
+                System.out.println("Moved Forward to: " + current);
+                
+                if (current.x() < 0 || current.y() < 0 || current.x() >= getSizeX() || current.y() >= getSizeY()) {
+                    System.out.println("Out of Bounds!");
+                    return false;
                 }
-                case 'R' -> currentDir = currentDir.turnRight();
-                case 'L' -> currentDir = currentDir.turnLeft();
+                if (isWall(current)) {
+                    System.out.println("Hit a Wall!");
+                    return false;
+                }
             }
-            logger.debug("Current Position: " + current);
+            case 'R' -> {
+                currentDir = currentDir.turnRight();
+                System.out.println("Turned Right, now facing: " + currentDir);
+            }
+            case 'L' -> {
+                currentDir = currentDir.turnLeft();
+                System.out.println("Turned Left, now facing: " + currentDir);
+            }
         }
-    
-        return current.equals(endPos);
     }
-    
+
+    System.out.println("Final Position: " + current + " | Expected End: " + endPos);
+    return current.equals(endPos);
+}
+
+
 }

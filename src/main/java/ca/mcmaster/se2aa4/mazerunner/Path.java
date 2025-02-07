@@ -2,83 +2,149 @@ package ca.mcmaster.se2aa4.mazerunner;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class Path {
-    private final List<Character> steps;
+    private final List<Character> path = new ArrayList<>();
 
     /**
-     * Initializes an empty path.
+     * Initialize an empty Path.
      */
     public Path() {
-        this.steps = new ArrayList<>();
+    }
+
+    /**
+     * Initialize path from a Path String.
+     *
+     * @param pathStr The Path String
+     */
+    public Path(String pathStr) {
+        String expanded = expandFactorizedStringPath(pathStr);
+        for (Character c : expanded.toCharArray()) {
+            if (c != ' ') {
+                if (c != 'F' && c != 'L' && c != 'R') {
+                    throw new IllegalArgumentException("Instruction '" + c + "' is invalid. Must be 'F', 'L', or 'R'.");
+                }
+                addStep(c);
+            }
+        }
+    }
+
+    /**
+     * Expands a factorized string path into a full movement path.
+     *
+     * @param path The factorized string path (e.g., "10F 2R").
+     * @return The expanded full string path (e.g., "FFFFFFFFFF RR").
+     */
+    public static String expandFactorizedStringPath(String path) {
+        StringBuilder expanded = new StringBuilder();
+
+        for (int i = 0; i < path.length(); i++) {
+            if (!Character.isDigit(path.charAt(i))) {
+                expanded.append(path.charAt(i));
+            } else {
+                int count = 0;
+                int digit = 0;
+                do {
+                    count *= (int) Math.pow(10, digit++);
+                    count += Character.getNumericValue(path.charAt(i++));
+                } while (Character.isDigit(path.charAt(i)));
+
+                String step = String.valueOf(path.charAt(i)).repeat(count);
+                expanded.append(step);
+            }
+        }
+
+        return expanded.toString();
+    }
+
+    /**
+     * Get steps of Path.
+     *
+     * @return Chars of Path
+     */
+    public List<Character> getPathSteps() {
+        return new ArrayList<>(this.path);
     }
 
     /**
      * Adds a step to the path.
      *
-     * @param step The movement instruction ('F' for forward, 'L' for left, 'R' for right).
+     * @param step The step that needs to be added.
      */
-    public void addStep(char step) {
-        if (step == 'F' || step == 'L' || step == 'R') {
-            steps.add(step);
-        } else {
-            throw new IllegalArgumentException("Invalid step. Only 'F' (forward), 'L' (left), and 'R' (right) are supported.");
-        }
+    public void addStep(Character step) {
+        path.add(step);
     }
 
     /**
-     * Returns the movement instructions as a string.
+     * Generates the canonical form of the maze path.
      *
-     * @return A string representation of the path.
-     */
-    @Override
-    public String toString() {
-        return steps.stream().map(String::valueOf).collect(Collectors.joining());
-    }
-
-    /**
-     * Retrieves the list of steps.
-     *
-     * @return The list of movement steps.
-     */
-    public List<Character> getSteps() {
-        return new ArrayList<>(steps);
-    }
-
-    /**
-     * Returns a canonical form of the path by compressing repetitive steps.
-     *
-     * @return A compressed string representation of the path.
+     * @return A string of the canonical form of a path.
      */
     public String getCanonicalForm() {
-        if (steps.isEmpty()) {
+        if (path.isEmpty()) {
             return "";
         }
 
-        StringBuilder result = new StringBuilder();
-        char prev = steps.get(0);
-        int count = 1;
+        StringBuilder canonicalPath = new StringBuilder();
+        char lastStep = path.get(0);
+        int repeatCount = 1;
 
-        for (int i = 1; i < steps.size(); i++) {
-            char current = steps.get(i);
-            if (current == prev) {
-                count++;
+        for (int i = 1; i < path.size(); i++) {
+            char currentStep = path.get(i);
+            if (currentStep == lastStep) {
+                repeatCount++;
             } else {
-                result.append(prev);
-                if (count > 1) {
-                    result.append(count);
+                if (repeatCount > 1) {
+                    canonicalPath.append(repeatCount);
                 }
-                prev = current;
-                count = 1;
+                canonicalPath.append(lastStep).append(' '); // Ensure space for readability
+                lastStep = currentStep;
+                repeatCount = 1;
             }
         }
 
-        result.append(prev);
-        if (count > 1) {
-            result.append(count);
+        // Append last recorded step
+        if (repeatCount > 1) {
+            canonicalPath.append(repeatCount);
+        }
+        canonicalPath.append(lastStep);
+
+        return canonicalPath.toString().trim(); // Trim trailing space
+    }
+
+    /**
+     * Generates the factorized form of the maze path.
+     *
+     * @return A string of the factorized form of a path (e.g., "10F 2R").
+     */
+    public String getFactorizedForm() {
+        if (path.isEmpty()) {
+            return "";
         }
 
-        return result.toString();
+        StringBuilder factorizedPath = new StringBuilder();
+        char lastStep = path.get(0);
+        int repeatCount = 1;
+
+        for (int i = 1; i < path.size(); i++) {
+            char currentStep = path.get(i);
+            if (currentStep == lastStep) {
+                repeatCount++;
+            } else {
+                factorizedPath.append(repeatCount).append(lastStep).append(' '); // Ensure space for readability
+                lastStep = currentStep;
+                repeatCount = 1;
+            }
+        }
+
+        // Append last recorded step
+        factorizedPath.append(repeatCount).append(lastStep);
+
+        return factorizedPath.toString().trim(); // Trim trailing space
     }
+    @Override
+    public String toString() {
+        return expandFactorizedStringPath(getFactorizedForm());
+    }
+    
 }
