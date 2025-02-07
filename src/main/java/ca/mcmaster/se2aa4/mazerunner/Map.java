@@ -164,7 +164,7 @@ public class Map {
         return maze.size();
     }
     public Boolean isPathValid(Path path) {
-        System.out.println("Checking path: " + path); // DEBUG LOG
+         // DEBUG LOG
         return isPathValidDirection(path, getStart(), Direction.RIGHT, getEnd()) ||
                isPathValidDirection(path, getEnd(), Direction.LEFT, getStart());
     }
@@ -183,35 +183,33 @@ private Boolean isPathValidDirection(Path path, Location startPos, Direction sta
     Location current = startPos;
     Direction currentDir = startDir;
 
-    System.out.println("Starting validation from: " + startPos + " facing " + startDir);
 
     for (char step : path.getPathSteps()) {
         switch (step) {
             case 'F' -> {
                 current = current.move(currentDir);
-                System.out.println("Moved Forward to: " + current);
                 
                 if (current.x() < 0 || current.y() < 0 || current.x() >= getSizeX() || current.y() >= getSizeY()) {
-                    System.out.println("Out of Bounds!");
+                    
                     return false;
                 }
                 if (isWall(current)) {
-                    System.out.println("Hit a Wall!");
+                   
                     return false;
                 }
             }
             case 'R' -> {
                 currentDir = currentDir.turnRight();
-                System.out.println("Turned Right, now facing: " + currentDir);
+                
             }
             case 'L' -> {
                 currentDir = currentDir.turnLeft();
-                System.out.println("Turned Left, now facing: " + currentDir);
+                
             }
         }
     }
 
-    System.out.println("Final Position: " + current + " | Expected End: " + endPos);
+   
     return current.equals(endPos);
 }
 

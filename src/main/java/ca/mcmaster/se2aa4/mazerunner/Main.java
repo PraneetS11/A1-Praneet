@@ -44,19 +44,21 @@ public class Main {
 
                 if (map.isPathValid(path)) {
                     logger.info("Correct path");
-                    System.out.println("correct path");
+                    System.out.println("Correct path");
                 } else {
                     logger.info("Incorrect path");
-                    System.out.println("incorrect path");
+                    System.out.println("Incorrect path");
                 }
             } else {
                 // Solve the maze normally if no -p flag is provided
                 logger.info("Initializing solver...");
-                Solver solver = new Solver(map);
+
+                // Use MapSolver interface instead of direct Solver instantiation
+                MapSolver solver = new Solver(map); 
 
                 // Solve the maze
                 logger.info("Calling solver.solve()...");
-                Path solutionPath = solver.solve();
+                Path solutionPath = solver.solve(map);
 
                 // Output the solution path
                 if (solutionPath != null) {
@@ -93,6 +95,29 @@ public class Main {
         // Add -p flag for path validation
         options.addOption(new Option("p", "path", true, "Path to be verified in maze"));
 
+        // Add optional solver selection flag
+        options.addOption(new Option("s", "solver", true, "Solver algorithm to use (default: basic)"));
+
         return options;
+    }
+
+    /**
+     * Determines which solver to use based on user input.
+     *
+     * @param map The maze to solve.
+     * @param cmd The command line arguments.
+     * @return An instance of the selected solver.
+     */
+    private static MapSolver getSolver(Map map, CommandLine cmd) {
+        String solverType = cmd.getOptionValue("s", "RHS"); // Default solver to "RHS"
+    
+        switch (solverType.toLowerCase()) {
+            case "rhs":
+                logger.info("Using Right-Hand Solver (RHS)");
+                return new Solver(map); // Default solver
+            default:
+                logger.warn("Unknown solver type provided: " + solverType + ". Using default RHS solver.");
+                return new Solver(map); // Ensure a solver is always returned
+        }
     }
 }
