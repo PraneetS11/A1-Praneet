@@ -4,17 +4,32 @@ import ca.mcmaster.se2aa4.mazerunner.command.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class RightHandSolver extends MazeSolverTemplate {
+public class RightHandSolver implements MapSolver {
     private static final Logger logger = LogManager.getLogger(RightHandSolver.class);
-    private final CommandExecutor executor = new CommandExecutor();
+    private final Map maze;
+    private Location currentPosition;
+    private Direction direction;
+    private final Path path;
+    private final CommandExecutor executor;
 
     public RightHandSolver(Map maze) {
-        super(maze);
+        this.maze = maze;
+        this.currentPosition = maze.getStart();
+        this.direction = Direction.RIGHT;
+        this.path = new Path();
+        this.executor = new CommandExecutor();
         logger.info("Solver initialized with start position: " + currentPosition + " and initial direction: " + direction);
     }
 
     @Override
-    protected void step() {
+    public Path solve(Map maze) {
+        while (!currentPosition.equals(this.maze.getEnd())) {
+            step();
+        }
+        return path;
+    }
+
+    private void step() {
         logger.debug("Current Position: " + currentPosition + " | Facing: " + direction);
 
         if (!maze.isWall(currentPosition.move(direction.turnRight()))) {

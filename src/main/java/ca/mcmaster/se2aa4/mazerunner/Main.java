@@ -37,14 +37,16 @@ public class Main {
 
                 if (map.isPathValid(path)) {
                     logger.info("Correct path");
-                    System.out.println("Correct path");
+                    System.out.println("correct path");
                 } else {
                     logger.info("Incorrect path");
-                    System.out.println("Incorrect path");
+                    System.out.println("incorrect path");
                 }
             } else {
-                logger.info("Initializing solver...");
-                MapSolver solver = getSolver(map, cmd);
+                String method = cmd.getOptionValue("method", "rhs");
+                logger.info("Selected solving method: " + method);
+                MapSolver solver = MazeSolverFactory.createSolver(method, map);
+
                 logger.info("Calling solver.solve()...");
                 Path solutionPath = solver.solve(map);
 
@@ -74,21 +76,8 @@ public class Main {
         options.addOption(fileOption);
 
         options.addOption(new Option("p", "path", true, "Path to be verified in maze"));
-        options.addOption(new Option("s", "solver", true, "Solver algorithm to use (default: basic)"));
+        options.addOption(new Option("method", true, "Path computation method (rhs, tremaaux, etc.)"));
 
         return options;
-    }
-
-    private static MapSolver getSolver(Map map, CommandLine cmd) {
-        String solverType = cmd.getOptionValue("s", "rhs");
-
-        switch (solverType.toLowerCase()) {
-            case "rhs":
-                logger.info("Using Right-Hand Solver (RHS)");
-                return new RightHandSolver(map);
-            default:
-                logger.warn("Unknown solver type provided: " + solverType + ". Using default RHS solver.");
-                return new RightHandSolver(map);
-        }
     }
 }
