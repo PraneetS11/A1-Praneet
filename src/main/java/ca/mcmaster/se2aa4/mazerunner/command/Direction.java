@@ -6,11 +6,6 @@ public enum Direction {
     LEFT,
     RIGHT;
 
-    /**
-     * Get the direction to the right of the current one (clockwise).
-     *
-     * @return The direction to the right.
-     */
     public Direction turnRight() {
         return switch (this) {
             case UP -> RIGHT;
@@ -20,11 +15,6 @@ public enum Direction {
         };
     }
 
-    /**
-     * Get the direction to the left of the current one (counter-clockwise).
-     *
-     * @return The direction to the left.
-     */
     public Direction turnLeft() {
         return switch (this) {
             case UP -> LEFT;
@@ -34,11 +24,6 @@ public enum Direction {
         };
     }
 
-    /**
-     * Get the opposite direction (180-degree turn).
-     *
-     * @return The opposite direction.
-     */
     public Direction turnAround() {
         return switch (this) {
             case UP -> DOWN;
