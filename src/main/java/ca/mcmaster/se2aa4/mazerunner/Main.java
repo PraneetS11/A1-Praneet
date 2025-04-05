@@ -45,7 +45,13 @@ public class Main {
             } else {
                 String method = cmd.getOptionValue("method", "rhs");
                 logger.info("Selected solving method: " + method);
-                MapSolver solver = MazeSolverFactory.createSolver(method, map);
+
+                SolverFactory factory = switch (method.toLowerCase()) {
+                    case "rhs" -> new RightHandSolverFactory();
+                    case "tremaux" -> new TremauxSolverFactory();
+                    default -> throw new IllegalArgumentException("Unknown solving method: " + method);
+                };
+                MapSolver solver = factory.createSolver(map, map.getStart(), map.getEnd());
 
                 logger.info("Calling solver.solve()...");
                 Path solutionPath = solver.solve(map);

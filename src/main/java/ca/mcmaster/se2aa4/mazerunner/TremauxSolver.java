@@ -1,8 +1,14 @@
 package ca.mcmaster.se2aa4.mazerunner;
 
-public class TremauxSolver extends AbstractSolver {
+public class TremauxSolver implements MapSolver {
+    private final Map maze;
+    private final Location start;
+    private final Location end;
+
     public TremauxSolver(Map maze, Location start, Location end) {
-        super(maze, start, end);
+        this.maze = maze;
+        this.start = start;
+        this.end = end;
     }
 
     @Override
